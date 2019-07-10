@@ -2,12 +2,17 @@ package ru.skillbranch.devintensive.utils
 
 object Utils {
     fun parseFullName(fullName: String?): Pair<String?, String?> {
-        val parts: List<String>? = fullName?.split(" ")
+        val parts: List<String>? = fullName?.trim()?.replace(Regex(" +"), " ")?.split(" ")
 
-        val firstName = parts?.getOrNull(0);
-        val lastName = parts?.getOrNull(1);
+        val firstName = parts?.notEmptyOrNullAt(0)
+        val lastName = parts?.notEmptyOrNullAt(1)
 
-        return firstName to lastName;
+        return firstName to lastName
+    }
+
+    private fun List<String>.notEmptyOrNullAt(index: Int) = getOrNull(index).let {
+        if ("" == it) null
+        else it
     }
 
     fun transliteration(payload: String, divider: String? = " "): String? {
@@ -89,22 +94,11 @@ object Utils {
         return result;
     }
 
-    fun toInitials(firstName: String?, lastName: String?): String? {
-        var initials: String? = "";
-
-        if (!firstName.isNullOrEmpty()) {
-            val firstFirstName = firstName.substring(0, 1).toUpperCase()
-            initials = firstFirstName
-        }
-
-        if (!lastName.isNullOrEmpty()) {
-            val firstLastName = lastName.substring(0, 1).toUpperCase()
-            initials = "$initials$lastName"
-        }
-
-        if (initials.isNullOrEmpty())
-            return null;
-        else
-            return "$initials";
+    fun toInitials(firstName: String?, lastName: String?): String? = when {
+        firstName.isNullOrBlank() && lastName.isNullOrBlank() -> null
+        !firstName.isNullOrBlank() && lastName.isNullOrBlank() -> firstName[0].toUpperCase().toString()
+        firstName.isNullOrBlank() && !lastName.isNullOrBlank() -> lastName[0].toUpperCase().toString()
+        !firstName.isNullOrBlank() && !lastName.isNullOrBlank() -> firstName[0].toUpperCase() + lastName[0].toUpperCase().toString()
+        else -> throw IllegalStateException("Incorrect state in 'when' expression")
     }
 }
